@@ -98,7 +98,32 @@ function wosaGoto(stepId) {
   wosaState.collapsedSteps[stepId] = false;
   wosaSaveState();
   wosaRender();
+  wosaSetHash(stepId);
   wosaScrollToStep(stepId);
+}
+
+/* Keeps the address bar pointing at the step the user is looking at,
+   so it can be copied as a permalink -- without the native jump-to-
+   anchor scroll a plain location.hash assignment would cause. Browsers
+   without history.replaceState (some legacy webOS builds) just skip
+   it; the step title's href is still a copyable permalink there. */
+function wosaSetHash(stepId) {
+  if (window.history && window.history.replaceState) {
+    try { window.history.replaceState(null, "", "#step-" + stepId); } catch (e) {}
+  }
+}
+
+/* The step title is a real <a href="#step-N"> so it can be long-pressed
+   / right-clicked to copy, or opened in a new tab. A plain click is left
+   to the header's own collapse toggle (no native anchor jump); a
+   modified click (new tab/window) follows the link and doesn't toggle. */
+function wosaStepLinkClick(e) {
+  e = e || window.event;
+  if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
+    if (e.stopPropagation) { e.stopPropagation(); } else { e.cancelBubble = true; }
+    return true;
+  }
+  return false;
 }
 
 /* Resets any step whose own node.options function reads the device
@@ -171,6 +196,7 @@ function wosaToggleStepCollapse(stepId) {
   wosaState.collapsedSteps[stepId] = !wosaState.collapsedSteps[stepId];
   wosaSaveState();
   wosaRender();
+  if (!wosaState.collapsedSteps[stepId]) { wosaSetHash(stepId); }
 }
 
 function wosaSetAllCollapsed(collapsed) {
@@ -337,6 +363,11 @@ function wosaStepSummary(step) {
   return parts.join(" &rarr; ");
 }
 
+function wosaStepTitleLink(step) {
+  return '<a class="step-link" href="#step-' + step.id + '" onclick="return wosaStepLinkClick(event)">' +
+    'Step ' + step.id + ': ' + step.title + '</a>';
+}
+
 function wosaRenderStepCard(step) {
   var html = '<div class="step-card" id="step-' + step.id + '">';
   var collapsed = !!wosaState.collapsedSteps[step.id];
@@ -344,7 +375,7 @@ function wosaRenderStepCard(step) {
   if (!collapsed) {
     html += '<div class="step-header clickable-header" onclick="wosaToggleStepCollapse(' + step.id + ')">' +
       '<img class="disclosure" src="images/disclosure-open.png" alt="">' +
-      'Step ' + step.id + ': ' + step.title +
+      wosaStepTitleLink(step) +
       '</div>';
     var body = step.node.topics ?
       wosaRenderTopics(step.node) :
@@ -354,7 +385,7 @@ function wosaRenderStepCard(step) {
     var summary = wosaStepSummary(step);
     html += '<div class="step-header clickable-header" onclick="wosaToggleStepCollapse(' + step.id + ')">' +
       '<img class="disclosure" src="images/disclosure-closed.png" alt="">' +
-      'Step ' + step.id + ': ' + step.title +
+      wosaStepTitleLink(step) +
       (summary ? ' &mdash; <span class="summary-text">' + summary + '</span>' : '') +
       '</div>';
   }
@@ -420,3 +451,10 @@ function wosaHandleInitialHash() {
 
 wosaRender();
 wosaHandleInitialHash();
+
+/* Also honor #step-N changes after load (e.g. a permalink pasted into
+   the address bar of an already-open tab). replaceState doesn't fire
+   this, so it won't loop with wosaSetHash. */
+if (window.addEventListener) {
+  window.addEventListener("hashchange", wosaHandleInitialHash, false);
+}
