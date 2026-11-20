@@ -283,6 +283,18 @@ body {
   position: relative;
 }
 
+/* step titles are permalinks (<a href="#step-N">) but should look like
+   the plain header text they replaced */
+.step-header .step-link,
+.step-header .step-link:visited {
+  color: #333333;
+  text-decoration: none;
+}
+
+.step-header .step-link:hover {
+  text-decoration: underline;
+}
+
 .step-header .summary-text {
   font-weight: normal;
   color: #555555;
