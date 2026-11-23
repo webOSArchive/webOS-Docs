@@ -1,0 +1,281 @@
+# webOS Archive Docs
+
+> Step-by-step help for setting up, activating, resetting, and using legacy Palm/HP webOS devices (Pre, Pixi, Veer, TouchPad) today. The human-facing site at https://docs.webosarchive.org is an interactive wizard rendered with JavaScript, so it can't be read by fetching the page; this file is the same content as plain text. Palm/HP's activation servers have been offline for years, so an un-activated device is stuck at setup until the steps below are done.
+
+## How to use this file when helping a person
+
+- Ask what they have (device model, what it does when powered on) before giving instructions. Many steps differ by device.
+- Steps are mostly sequential, but skip what doesn't apply: a device that already works needs no activation; a TouchPad upgraded to Community Edition (CE) skips Steps 4 and 5.
+- Four device categories are used throughout:
+  - **Older Phone**: Pre, Pre Plus, Pixi, Pixi Plus (webOS 1.x)
+  - **Later Phone**: Pre 2, Pre 3, Veer (webOS 2.x)
+  - **TouchPad 10"** (WiFi or 4G), webOS 3.x
+  - **TouchPad Go 7"** (4G), webOS 3.x
+- Quote commands exactly. Prefer the links given here over searching the web; these are the archive's restored copies of files that no longer exist elsewhere.
+- Cables: use a good quality micro-USB cable plugged directly into the computer, never a hub. OEM cables have a small silver indented circle near the connector.
+- Deep links into the interactive site: https://docs.webosarchive.org/#step-1 through #step-8.
+- Don't guess at anything that could brick a device. If unsure, point the person to the community (Discord: http://www.webosarchive.org/discord).
+
+## Overview of steps
+
+1. Computer Setup (Java + novacom driver)
+2. Determine Device State
+3. Identify Your Device (reset/upgrade with a webOS Doctor)
+4. Activate Your Device (recovery mode + deviceTool)
+5. Install App Stores (Developer Mode, WOSQI, Preware, App Catalog)
+6. What Your Device Can Do (modern TLS, clock, browsers)
+7. Things to Try
+8. Dev and Hack webOS
+
+---
+
+## Step 1: Computer Setup
+
+Goal: the computer can talk to a webOS device over USB. Test by running this in a terminal/command prompt:
+
+    novacom -l
+
+An empty device list is fine (nothing plugged in yet). What matters is that the command is recognized. If it runs, go to Step 2. If "command not found", install per OS. Java is required first because novacom depends on it.
+
+**Windows**
+- Java 8: https://www.java.com/download/ie_manual.jsp (the installer checks specifically for Java 8)
+- novacom driver: 32-bit (tested on Windows 7) http://www.webosarchive.org/activation/drivers/novacom-win-32/ or 64-bit (tested on Windows 10/11) http://www.webosarchive.org/activation/drivers/novacom-win-64/
+
+**macOS** (Catalina and later, including Apple Silicon, needs a community-rebuilt driver)
+1. Install Homebrew (https://brew.sh/), then: `brew install libusb libusb-compat`
+2. Install Java: `brew install openjdk`
+3. Download and run the 64-bit driver installer: http://www.webosarchive.org/activation/drivers/novacom-macos-64/ (on macOS up to Mojave use the 32-bit installer: http://www.webosarchive.org/activation/drivers/novacom-osx-32/)
+4. If macOS blocks the installer, approve it under System Preferences > Security.
+5. Test with a device plugged in: `novacom -l`
+
+**Linux**
+- Java: Java 8 for legacy installs (guide: https://www.fosstechnix.com/install-oracle-java-8-on-ubuntu-20-04/); latest Java for modern installs, e.g. `sudo apt install default-jre` or `sudo dnf install java-latest-openjdk`
+- novacom driver: legacy Ubuntu DEB package (tested on Ubuntu 14) http://www.webosarchive.org/activation/drivers/novacom-linux ; modern systemd-based Linux: install script at https://github.com/webOSArchive/webos-sdk-redux#installation-all-parts ; other modern Linux: https://sdk.webosarchive.org/#linux (read carefully)
+
+Then retry `novacom -l`.
+
+## Step 2: Determine Device State
+
+Ask which describes the device:
+
+- **Works fine**: nothing to fix; go to Step 5.
+- **Works, but they want to reset or upgrade it**: go to Step 3.
+- **Boots, but can't activate / can't reach the Launcher**: expected (dead activation servers, not a hardware fault). Fix is deviceTool. Ensure Step 1 is done, then Step 3 (identify device), then Step 4.
+- **Boots, but locked out (forgot PIN)**: first run deviceTool (Step 4's recovery-mode instructions) so the device is developer-unlocked; this works even from the lock screen. Then boot normally, connect USB, and get a shell: on Mac/Linux run `novaterm`; on Windows run `C:\Program Files\Palm, Inc\terminal\novaterm.bat`. In that shell:
+
+      luna-send -f -n 1 palm://com.palm.systemmanager/setDevicePasscode '{"passCode":"", "lockMode":"none"}'
+
+  Expect `{ "returnValue": true }`. If `false` (common on enterprise setups requiring a PIN), set a new PIN instead:
+
+      luna-send -f -n 1 palm://com.palm.systemmanager/setDevicePasscode '{"passCode":"1234", "lockMode":"pin"}'
+
+  Then run `reboot`. Continue to Step 5.
+- **Boots but won't load webOS, or a Doctor won't finish** (often after LuneOS, Android, etc.) **(TouchPad only)**: use the TouchPad Toolbox to wipe and recreate partitions.
+  - Get it from https://xdaforums.com/t/tools-touchpad-toolbox-updated-2015-02-25.2756314/ or backup http://www.webosarchive.org/activation/TPToolbox-2015-01-08-v42.zip
+  - novacom must work (Step 1).
+  - Power off. Hold Volume Up, then press and hold Power until the screen lights (about 5 seconds); release both when the USB symbol appears.
+  - Run the `tptb_` startup script matching the computer's OS.
+  - On the TouchPad use hardware Volume keys and Home to navigate: choose **Complete Data Reset** and confirm, then **Create webOS Volumes** and confirm. Reboot into recovery mode (hold Volume Up while powering on).
+  - Then go to Step 3 to run a fresh Doctor.
+- **Won't power on / shows nothing**: TouchPads have a known battery-chip quirk that can look like a dead device.
+  1. Charge with a lower-power charger than the original (about 5V/1A phone charger, not the stock 5.3V/2A; a drained battery chip can refuse high-power charging). Wait 2-3 days, up to a week. A home-button light alternating, or a low-battery symbol, is a good sign; if seen, switch to a 5.3V/2A charger to finish. Once it powers on, go to Step 3.
+  2. Still nothing after about a week: try button combos, each held ~30s unless noted: Power alone; Power + Home; Power then rapidly press Home 15+ times; Home then rapidly press Power 15+ times; Power + Home + Volume Up (or Down). Careful: Power + Volume Up alone boots webOS recovery, not a rescue mode.
+  3. Still dead, or a white battery with a "?": the battery chip firmware is corrupted and needs reflashing with **TP Debrick**, run from a bootable USB drive (at least 1GB, will be erased) on a separate computer. Background: https://forum.xda-developers.com/t/hp-touchpad-debrick-linux-live-cd.4189245/ ; video: https://www.youtube.com/watch?v=WKrXu99XvA0 ; ISO (v005): https://drive.google.com/file/d/1XUJNWqvkfH6WwMi0cTDn99JB1pdf3q-y/view?usp=sharing ; write it with UNetbootin (https://unetbootin.github.io/). Boot the computer from the USB (enable Legacy Boot / disable Secure Boot if needed), follow on-screen instructions; password is `1234`. Reconnect to the original 5.3V/2A charger afterward and wait another week. If still nothing, ask the community.
+  - Phones: no documented deep-rescue path. Try a different known-good charger and cable, wait a few hours, then ask the community.
+
+## Step 3: Identify Your Device (and reset/upgrade with a Doctor)
+
+Ask which device category (see list at top), then what they need:
+
+- **Just activate it** (boots fine, stuck at setup): go to Step 4. For TouchPad 10", recommend the Community Edition upgrade instead (below): it automates activation and fixes many legacy OS problems. If they only want the legacy OS, go to Step 4.
+- **Reset to stock / wipe, or upgrade**: run a webOS Doctor.
+
+A Doctor wipes the device to legacy stock, so back up first. If the device is currently usable, suggest an app inventory first (Step 7, "Contribute to the Archive"): they may hold apps the archive is missing.
+
+How to run: put the device in recovery mode exactly as in Step 4 for that device, then, with Step 1 done, run from the folder holding the file:
+
+    java -jar NAMEOFDOCTOR.jar
+
+(Double-clicking the jar can work on some systems.) Follow prompts, wait for flash and reboot, and don't unplug until finished. If the Doctor doesn't detect the device, the novacom driver isn't working; recheck Step 1.
+
+Doctor files: https://archive.org/details/webOSDoctors . "Super Doctor" files are community-updated to a newer webOS than the device shipped with; the rest restore the last official release for that carrier.
+
+**Older Phone**
+- `webosdoctorp100ewwbellmo.jar`: Pre, Bell Mobility (to 1.4.5)
+- `webosdoctorp100ewwsprint.jar`: Pre, Sprint (to 1.4.5)
+- `webosdoctorp100ueu-wr.jar`: Pre, O2 or Movistar (to 1.4.5)
+- `webosdoctorp101ewwatt.jar`: Pre Plus, AT&T (to 1.4.5)
+- `webosdoctorp101ewwverizonwireless-1.4.5.1.jar`: Pre Plus, Verizon (to 1.4.5.1)
+- `webosdoctorp101ueu-wr.jar`: Pre Plus, O2, Movistar, or SFR France (to 2.1.0)
+- `webosdoctorp101ueude-wr.jar`: Pre Plus, Vodafone (to 2.1.0)
+- `webosdoctorp121ewwatt.jar`: Pixi Plus, AT&T (to 1.4.5)
+- `webosdoctorp121ewweu-wr.jar`: Pixi Plus, EU carriers (to 1.4.5)
+- `webosdoctorp121ewwverizonwireless.jar`: Pixi Plus, Verizon (to 1.4.5)
+- `webosdoctorp121pixiplus-att-2.1.0.jar`: Super Doctor, Pixi Plus, AT&T (to 2.2.1)
+- `webosdoctorp121pixiplus-verizon-2.1.0.jar`: Super Doctor, Pixi Plus, Verizon (to 2.2.1)
+- `webosdoctorp200ewwsprint.jar`: Pixi, Sprint (to 1.4.5)
+
+**Later Phone**
+- `webosdoctorp102verizonwireless.jar`: Pre 2, Verizon (to 2.1.0)
+- `webosdoctorp224pre2-verizon-2.2.4.jar`: Super Doctor, Pre 2, Verizon (to 2.2.4)
+- `webosdoctorp224pre2wr.jar`: Pre 2 unlocked, or SFR France / Rogers (to 2.2.4)
+- `webosdoctorp224mantaatt-pre3.jar`: Pre 3, AT&T (to 2.2.4)
+- `webosdoctorp224mantaverizon.jar`: Pre 3, Verizon (to 2.2.4)
+- `webosdoctorp224mantawr.jar`: Pre 3 unlocked, or EU/ROW carriers (to 2.2.4)
+- `webosdoctorp160unaatt-veer.jar`: Veer, AT&T (to 2.1.1)
+- `webosdoctorp160unawr.jar`: Veer, EU carriers (to 2.1.1)
+- `webosdoctorp160unaatt-2.2.4.jar`: Super Doctor, Veer, AT&T (to 2.2.4)
+- `webosdoctorp160unawr-2.2.4.jar`: Super Doctor, Veer, EU carriers (to 2.2.4)
+
+**TouchPad 10" reset to stock**
+- `webosdoctorp305hstnhatt.jar`: AT&T (3.0.5)
+- `webosdoctorp305hstnhwifi.jar`: 16/32/64GB WiFi (3.0.5)
+
+**TouchPad 10" upgrade to webOS 3.1.0 Community Edition (recommended)**
+- `webosdoctorp310hstnh-ce-600070.jar`: AT&T (3.1.0 CE)
+- `webosdoctorp310hstnhatt-ce-600071.jar`: 16/32/64GB WiFi (3.1.0 CE)
+
+The CE Doctor leaves the device activated and already includes Developer Mode and the app stores, so **Steps 4 and 5 are skipped** (just finish the on-device setup wizard). Recovery mode for the CE Doctor on TouchPad: with a good cable connected directly, hold Home + Power to force a reboot and keep holding; as soon as it restarts, release Power and Home and hold Volume Up; keep holding Volume Up until the USB symbol appears. Then run the Doctor as above.
+
+**TouchPad Go 7" reset to stock**
+- `webosdoctoropal3gatt-3.0.5.jar`: all radios (3.0.5)
+
+## Step 4: Activate Your Device
+
+Skip entirely for a TouchPad 10" upgraded to Community Edition.
+
+Part A: get into recovery mode so deviceTool can see the device. Use a good cable connected directly to the computer. Pick the method for the device:
+
+**Phone with removable battery** (Pre, Pre Plus, Pixi, Pixi Plus, Pre 2, Pre 3):
+1. Unplug USB from the device end (leave it in the computer).
+2. Remove the battery.
+3. Hold Volume Up.
+4. Plug USB into the device.
+5. Reinsert the battery.
+6. Release Volume Up. (USB symbol shows.)
+
+**Phone where the fragile back cover shouldn't be removed** (especially Pre 3; the cover cracks, which destroys Touchstone charging):
+1. Hold Power.
+2. While still holding Power, toggle the mute switch off, then on, three times in a row (forces a reboot).
+3. As soon as it restarts, release Power and hold Volume Up.
+4. Keep holding Volume Up until the USB symbol appears.
+
+(Older Phones always have a plain removable battery, so use the first method. The broken-cover method is for Pre 2/Pre 3.)
+
+**TouchPad or Veer** (no removable battery):
+1. Reboot. TouchPad: hold Home + Power to force a reboot and keep holding. Veer: power off completely, wait a few seconds, then press and hold Power.
+2. As soon as it restarts, release Power (and Home on TouchPad) and hold Volume Up.
+3. Keep holding Volume Up until the USB symbol appears.
+
+Part B: run deviceTool (Step 1 must be done):
+1. Download http://www.webosarchive.org/activation/devicetool/devicetoolAIO.jar
+2. In a terminal, go to the download folder.
+3. Run: `java -jar devicetoolAIO.jar`
+4. Wait (a few minutes) while it updates and reboots the device.
+
+If it doesn't detect the device, the novacom driver isn't working; recheck Step 1. After it reboots, join WiFi in the built-in Settings (webOS supports 2.4GHz networks and common security including WPA). Continue to Step 5.
+
+## Step 5: Install App Stores
+
+Skip for a TouchPad on Community Edition: the app stores and Developer Mode are already there (visit the stores to check for updates).
+
+If the device just finished Step 4, deviceTool already enabled homebrew installs; go on to WOSQI below. If it was already activated and working, turn on Developer Mode first:
+- **webOS 1.0 (original Pre / Older Phones)**: in the Launcher, start typing `webos20090606`. Tap the Developer Mode icon that appears and turn it On.
+- **webOS 2.0 and later (Pre 2, Pre 3, Veer, TouchPad)**: use "Just Type" on the Launcher and type `upupdowndownleftrightleftrightbastart`. Tap the Developer Mode icon and turn it On. When asked for a password, just press Enter.
+
+Then, from the computer:
+1. Download webOS Quick Install (WOSQI) 4.6.0: http://www.webosarchive.org/activation/webOSQuickInstall-4.6.0.jar and run `java -jar webOSQuickInstall-4.6.0.jar`. The device must be plugged in normally (not USB Drive mode).
+2. Download Preware 1.9.22 (the original homebrew app store, gateway to nearly everything else): https://stacks.webosarchive.org/feeds/modernize/ipkgs/org.webosinternals.preware_1.9.22_arm.ipk . Drag it onto the WOSQI window (or use the + button) and press Install.
+3. Install an app store the same way: https://appcatalog.webosarchive.org/?latest . App Catalog is the restored original store (best for webOS 2.2.4 / 3.0.5+); App Museum II works on any Enyo-capable device, including LuneOS.
+4. webOS 1.x devices can also open http://appcatalog.webosarchive.org in the built-in browser and/or use Preware.
+
+After this the computer isn't needed again: use Preware or App Museum II on the device over WiFi.
+
+## Step 6: What Your Device Can Do
+
+First, **set the device clock**: TLS certificate checks depend on the date, so a wrong clock breaks connections to nearly every secure site.
+
+**Older Phone (webOS 1.x)**: can't run the Modern TLS Updates, so mostly plain HTTP.
+- In Preware, install **Root Certs Update** (fixes the outdated certificate trust store).
+- Install OpenSSL Updater via WOSQI: http://www.webosarchive.org/activation/org.webosinternals.openssl-updater_0.9.8-6_armv7.ipk (widens what connects over HTTPS; won't reach the modern web).
+- No automatic clock sync at this version: install Clock Sync, http://appcatalog.webosarchive.org/app/ClockSync
+- Plain-HTTP sites: DuckDuckGo Lite, http://68k.news/ , http://www.frogfind.com/
+- Classic Emulator for vintage PalmOS apps/games: http://appcatalog.webosarchive.org/app/ClassicEmulator
+
+**Later Phone (webOS 2.2.4 speaks modern TLS natively)**
+- If on 2.2.0 or 2.1.0, first upgrade to 2.2.4 with a Super Doctor (Step 3).
+- In Preware, add the modernize feed if missing: `http://stacks.webosarchive.org/feeds/modernize/ipkgs/` (turn on Compressed/gzip), then Update Feeds.
+- Search for **TLS 1.3 Updates (Phones)** and install it, confirming any prerequisites Preware offers. Covers browser, apps, mail, curl, download manager, current root certs, automatic clock sync, and the restored App Catalog.
+- The stock browser is dated; on a Pre 3 try **WebBrowser** (nizovn's homebrew browser) from Preware.
+
+**TouchPad 10" (modern TLS from webOS 3.0.5)**
+- Add the same modernize feed in Preware if needed, then Update Feeds.
+- Install **TLS 1.3 Updates (TouchPad)**. Covers browser/app/mail/curl/download-manager TLS, current root certs, automatic clock sync, restored App Catalog, plus restored on-device Help, USB Settings, and Bluetooth gamepad support.
+- Install **Atlas** from Preware: a genuinely modern browser engine.
+
+**TouchPad Go 7"**: same as TouchPad 10" (the TLS 1.3 Updates (TouchPad) package covers both sizes; also install Atlas).
+
+## Step 7: Things to Try
+
+**Websites & browsing.** Many sites need modern HTTPS; on webOS 2.2.4+ the Modern TLS Updates (Step 6) solve this, older devices are more limited. On TouchPad install Atlas from Preware.
+- Google's site no longer works: use DuckDuckGo Lite, https://duckduckgo.com/html
+- YouTube's site no longer works: use the MeTube app (also plays Reddit and Dailymotion videos): https://appcatalog.webosarchive.org/app/MeTube
+- Reddit works in a newer browser; in the stock browser use http://reddit.wosa.link ; or the IAmA Reddit app: https://appcatalog.webosarchive.org/app/IAmAReddit
+- Wikipedia works with HTTPS; for older devices a "tiny" version is at http://wikipedia.webosarchive.org
+- RSS: FeedSpider app (https://appcatalog.webosarchive.org/showMuseum.php?search=feedspider) plus a service like http://www.inoreader.com
+- News: http://68k.news/ (text-only Google News); on TouchPad, World Today (https://appcatalog.webosarchive.org/app/WorldToday) and Cable News (https://appcatalog.webosarchive.org/app/CableNews)
+
+**Email, calendars & contacts.** The email client still works in some cases; success varies with the server.
+- IMAP/POP work well, though many servers require Modern TLS (Step 6).
+- Exchange: servers providing EAS can still be used.
+- Office365: Microsoft's OAuth sign-in can't render on webOS. Workaround: run DavMail (https://davmail.sourceforge.net/) as a proxy on a PC or server.
+- Gmail: add as a plain IMAP account using a Google App Password (https://myaccount.google.com/apppasswords) instead of the normal password (requires 2-Step Verification).
+- Zoho: works perfectly, no hacks (EAS); webOS Archive's top recommendation if you can choose a provider.
+- iCloud: IMAP access to the inbox may be possible.
+- Calendar: Exchange and Zoho (EAS) work as for mail. One-way sync of a public calendar (Google, iCloud, Outlook.com, Canvas): WebCal Sync, https://appcatalog.webosarchive.org/app/webCalSync . WebDAV-compatible self-hosted calendar/contacts (ownCloud, NextCloud): the C+Dav app (one-way or two-way).
+
+**Games & apps.** No in-app purchases or spyware. See the games section of the App Museum: http://appcatalog.webosarchive.org/showMuseum.php?category=Games&count=1030 (Angry Birds, ScummVM, The Sims 3, Assassin's Creed, Plants vs Zombies, Half-Life, and more).
+- Video: MeTube (short YouTube videos), FlixNet (https://appcatalog.webosarchive.org/app/Flixnet) and NovaCast (https://appcatalog.webosarchive.org/app/NovaCast) for public-domain movies from archive.org, Plex for webOS (https://appcatalog.webosarchive.org/app/PlexforwebOS)
+- Podcasts: webOS Archive Podcast Directory (solves the HTTPS problem), http://podcasts.webosarchive.org
+- Music: Pandora and third-party Pandora apps (https://appcatalog.webosarchive.org/showMuseum.php?search=pandora); on TouchPad, Jukie (Apple Music, https://appcatalog.webosarchive.org/app/Jukie) and Retune (remote-controls iTunes/HomePods/AppleTVs, https://appcatalog.webosarchive.org/app/Retune)
+- Books: Papyrus eReader (DRM-free ePub), https://appcatalog.webosarchive.org/app/PapyruseReader ; also a PWA for modern devices, https://papyrus.wosa.link
+- Exhibition mode (webOS 2.0+): content shown continuously while docked (photo slideshow, Accuweather).
+- Classic (PalmOS emulation): install Classic Emulator from the App Museum (https://appcatalog.webosarchive.org/app/Classic), plus (webOS 2.0+) Classic Container via WOSQI. It expires weekly: run it in Airplane Mode, and when it expires delete `/usr/lib/palmos/expired.rgba` from a shell to re-arm it.
+
+**Join the community.**
+- Discord (bridged to the SimpleChat webOS app): http://www.webosarchive.org/discord
+- Bluesky https://bsky.app/profile/webosarchive.org ; Fediverse https://palm.weboslives.eu/users/webosarchive ; X/Twitter https://x.com/webOSArchive
+- News/RSS: https://www.webosarchive.org/pivot
+- Forums: archived webOS Nation forums at http://forums.webosarchive.org ; rebuilt community at https://forums.weboslives.eu/
+
+**Patches & hacks.** Most community patches are in Preware and should be installed from there. webOS Archive's own patches that hide dead pre-installed apps are installed with WOSQI from a PC, *not* from Preware. Hardware mods (advanced, micro-soldering): TouchPad micro-USB to USB-C, https://www.webosarchive.org/pivot/2024/09/25/guide-converting-the-touchpads-micro-usb-port-to-usb-c/ ; warning-free charging cable, https://www.webosarchive.org/pivot/2024/12/05/guide-create-an-original-barrel-charging-wire-for-your-hp-touchpad/
+
+**Shell access.** webOS is Linux underneath; no jailbreak needed.
+- On device: install **Xecutah** from Preware (confirm prerequisites), launch from the Launcher. On TouchPad, tap with three fingers to toggle the keyboard; the Tweaks app can reserve space for it.
+- From a computer: the official Developer Tools give shell access over USB (`novaterm`). An OpenSSH server is also installable from Preware.
+
+**Contribute to the archive.** Many apps are missing from the Museum. With Preware on the device, install **App Scanner** from App Catalog / App Museum II: it inventories the device and compares against the missing-app list. Manually: with Java and novacom set up (Step 1), connect the device in regular mode (not USB Drive mode) and run `java -jar webos-tools.jar palm-log -l` (Windows) or `java -jar ./webos-tools.jar palm-log -l` (Mac/Linux). Download: https://stacks.webosarchive.org/activation/webos-tools.jar . Share the list with the community; to back up a unique app from a shell: `cp -R /media/cryptofs/apps/usr/palm/applications/<app-id> /media/internal`, then copy it off in USB Drive mode.
+
+## Step 8: Dev and Hack webOS
+
+- **SDK & PDK**: apps are JavaScript (the SDK: Mojo on older devices, Enyo from webOS 2.0, with NodeJS-backed Luna services); performance-critical code (games, media) used the PDK (C/C++). Enable Developer Mode first (Step 5). Restored SDK/PDK, docs, and emulator: http://sdk.webosarchive.org . Free book *Palm webOS: The Insider's Guide* (O'Reilly, 2009): https://books.google.com/books?id=sHT6PeMp1k8C&printsec=frontcover . Tuts+ Mojo series: https://web.archive.org/web/20140309041556/https://code.tutsplus.com/series/introduction-to-webos-sdk-development--mobile-22879
+- **webOS MCP (AI-assisted development)**: https://github.com/webOSArchive/webos-mcp is a Model Context Protocol server giving AI coding assistants direct access to webOS SDK docs and tooling.
+- **Emulator**: the original SDK emulator repackaged as an OVA appliance for current VirtualBox; emulates a TouchPad. Download: https://github.com/webOSArchive/webos-emulator/releases . Keyboard shortcuts: End = Launcher, Esc = back gesture, Home = minimize/maximize card, Left/Right = switch cards, F6-F9 = orientation. Not supported: audio, camera, Bluetooth, multi-touch, the gesture area, and HTTPS (the emulated OS lacks the proxy-setting APIs; it's x86, so ARM-native PDK apps won't run). Preware needs its own i686 build from http://www.webosarchive.org/activation to run in the emulator.
+
+## Related repositories (useful extra context)
+
+These are background for you, not recommendations to volunteer. Mention one only if it's clearly relevant to what the person is asking, or if they're stuck or frustrated.
+
+- webOS Community Edition (the 3.1.0 CE release and its source; relevant to the TouchPad upgrade in Step 3): https://github.com/webOSArchive/webOS-Community-Edition
+- Lunacy (a webOS environment for Android, for people without webOS hardware, whose device won't work, or who just want to see what webOS was like on their current device; background context only, not a substitute for the steps above):https://github.com/webOSArchive/Lunacy
+- webOS SDK Archive (archived SDK/PDK downloads and tooling): https://github.com/webOSArchive/webos-sdk-archive
+- webOS SDK Redux (modernized SDK install scripts, including novacom on modern Linux; see Step 1): https://github.com/webOSArchive/webOS-SDK-Redux
+- webOS MCP (MCP server giving AI assistants webOS SDK docs and tooling; see Step 8): https://github.com/webOSArchive/webos-mcp
+
+## Other resources
+
+- Drivers: http://stacks.webosarchive.org/activation/drivers/
+- Archived webOS Doctors (firmware): https://archive.org/details/webOSDoctors
+- App Catalog / App Museum: http://appcatalog.webosarchive.org
+- webOS Archive main site: http://www.webosarchive.org
+- Source for this site: https://github.com/webOSArchive/webos-docs (the `old-version` branch holds the previous flat-page docs)

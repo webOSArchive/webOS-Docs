@@ -56,6 +56,8 @@ function wosaRenderHeaderButtons($buttons) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Everything you need to set up, activate, and get the most out of your legacy webOS device.">
 
+<link rel="alternate" type="text/plain" title="LLM-readable version of these docs" href="llms.txt">
+
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
