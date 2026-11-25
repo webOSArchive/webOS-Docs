@@ -82,7 +82,7 @@ var STEP2_NODE = {
     },
     {
       label: "It works, but I want to reset or upgrade it",
-      content: "<p>No rush &mdash; head to Step 3 and pick your device to see the reset or upgrade option that fits it.</p>" +
+      content: "<p>Head to Step 3 and pick your device to see the reset or upgrade option that fits it.</p>" +
         "<p><button type='button' class='continue-btn' onclick='wosaGoto(3)'>Continue to Step 3 &rarr;</button></p>"
     },
     {
@@ -223,6 +223,8 @@ var STEP3_DOCTOR_INTRO = STEP3_DOCTOR_CALLOUT +
 
 var STEP3_DOCTOR_NOTE_SUPER = "<p class='note'>&ldquo;Super Doctor&rdquo; files are community-updated to install a newer webOS version than the device originally shipped with; the rest restore the last official release for that carrier.</p>";
 
+var STEP3_DOCTOR_CONTINUE = "<p><button type='button' class='continue-btn' onclick='wosaGoto(4)'>Flash complete, on to activation &rarr;</button></p>";
+
 var STEP3_DOCTOR_OLDER_PHONE = STEP3_DOCTOR_INTRO +
   "<ul>" +
   "<li><code>webosdoctorp100ewwbellmo.jar</code> &mdash; Pre on Bell Mobility (to 1.4.5)</li>" +
@@ -239,7 +241,7 @@ var STEP3_DOCTOR_OLDER_PHONE = STEP3_DOCTOR_INTRO +
   "<li><code>webosdoctorp121pixiplus-verizon-2.1.0.jar</code> &mdash; Super Doctor, Pixi Plus on Verizon (to 2.2.1)</li>" +
   "<li><code>webosdoctorp200ewwsprint.jar</code> &mdash; Pixi on Sprint (to 1.4.5)</li>" +
   "</ul>" +
-  STEP3_DOCTOR_NOTE_SUPER;
+  STEP3_DOCTOR_NOTE_SUPER + STEP3_DOCTOR_CONTINUE;
 
 var STEP3_DOCTOR_LATER_PHONE = STEP3_DOCTOR_INTRO +
   "<ul>" +
@@ -254,21 +256,22 @@ var STEP3_DOCTOR_LATER_PHONE = STEP3_DOCTOR_INTRO +
   "<li><code>webosdoctorp160unaatt-2.2.4.jar</code> &mdash; Super Doctor, Veer on AT&amp;T (to 2.2.4)</li>" +
   "<li><code>webosdoctorp160unawr-2.2.4.jar</code> &mdash; Super Doctor, Veer on EU carriers (to 2.2.4)</li>" +
   "</ul>" +
-  STEP3_DOCTOR_NOTE_SUPER;
+  STEP3_DOCTOR_NOTE_SUPER + STEP3_DOCTOR_CONTINUE;
 
 var STEP3_DOCTOR_TOUCHPAD_RESET = STEP3_DOCTOR_INTRO +
   "<ul>" +
   "<li><code>webosdoctorp305hstnhatt.jar</code> &mdash; TouchPad 10&quot; AT&amp;T (3.0.5)</li>" +
   "<li><code>webosdoctorp305hstnhwifi.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.0.5)</li>" +
-  "</ul>";
+  "</ul>" + STEP3_DOCTOR_CONTINUE;
 
-var STEP3_DOCTOR_TOUCHPAD_CE = "<p class='note'>The Community Edition Doctor activates the device for you, so once it finishes, <a href='#' onclick='wosaGoto(4); return false;'>Step 4</a> is just a quick on-device confirmation.</p>" +
-  STEP3_DOCTOR_CALLOUT +
-  "<p>Running a Doctor wipes the device, so back up anything on it you want to keep first. This one replaces the original OS with webOS 3.1.0 Community Edition.</p>" +
+var STEP3_DOCTOR_TOUCHPAD_CE = "<p><img src='https://appcatalog.webosarchive.org/AppImages/1005833/icon-256.png' width='64' style='float:left; margin-right:8px;'>If you previously Doctored your TouchPad to webOS Community Edition 3.1.0, and just want to update to the 3.2.0, you only need to install the <b>OTA Ready</b> app from the App Catalog and follow the prompts on your device.</p>" +
+  "<p>If you're upgrading from an older OS, or need to reset, continue reading below...</p>" + STEP3_DOCTOR_CALLOUT +
+  "<p>The Community Edition Doctor activates the device for you, so once it finishes, <a href='#' onclick='wosaGoto(4); return false;'>Step 4</a> is just a quick on-device confirmation.</p>" +
+  "<p>Running a Doctor wipes the device, so back up anything on it you want to keep first. This one replaces the original OS with webOS 3.2.0 Community Edition.</p>" +
   "<p>Download the matching file for your TouchPad from the <a href='https://archive.org/details/webOSDoctors'>archived webOS Doctors</a>:</p>" +
   "<ul>" +
-  "<li><code>webosdoctorp310hstnh-ce-600070.jar</code> &mdash; TouchPad 10&quot; AT&amp;T (3.1.0 Community Edition)</li>" +
-  "<li><code>webosdoctorp310hstnhatt-ce-600071.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.1.0 Community Edition)</li>" +
+  "<li><code>webosdoctorp320hstnh-ce-600121.jar</code> &mdash; TouchPad 10&quot; AT&amp;T (3.2.0 Community Edition)</li>" +
+  "<li><code>webosdoctorp320hstnhatt-ce-600122.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.2.0 Community Edition)</li>" +
   "</ul>" +
   "<p><strong>Get the TouchPad into recovery mode.</strong> Connect a good quality micro-USB cable directly between the TouchPad and your computer &mdash; not through a hub. (OEM cables are recognizable by a small silver indented circle near the connector.)</p>" +
   "<ol>" +
@@ -288,7 +291,7 @@ var STEP3_DOCTOR_TOUCHPAD_CE = "<p class='note'>The Community Edition Doctor act
 var STEP3_DOCTOR_TOUCHPAD_GO = STEP3_DOCTOR_INTRO +
   "<ul>" +
   "<li><code>webosdoctoropal3gatt-3.0.5.jar</code> &mdash; TouchPad Go 7&quot; all radios (3.0.5)</li>" +
-  "</ul>";
+  "</ul>" + STEP3_DOCTOR_CONTINUE;
 
 var STEP3_NODE = {
   q: "Which best describes your device?",
@@ -332,7 +335,7 @@ var STEP3_NODE = {
         options: [
           {
             label: "Just activate it (it boots fine, just stuck at setup)",
-            content: "<p class='note'>The Community Edition upgrade is the recommended path.</p><p>Upgrading to 3.1.0 automates activation, and addresses many legacy OS challenges. Consider upgrading, instead of just activating.</p>" + 
+            content: "<p class='note'>The Community Edition upgrade is the recommended path.</p><p>Upgrading to 3.2.0 automates activation, and addresses many legacy OS challenges. Consider upgrading, instead of just activating.</p>" + 
             "<button type='button' class='opt-btn' onclick='wosaGoto(4)'><img class='chevron' src='images/chevron.png' alt=''>I just want to activate the legacy OS.</button>"
             
           },
@@ -341,7 +344,7 @@ var STEP3_NODE = {
             content: STEP3_DOCTOR_TOUCHPAD_RESET
           },
           {
-            label: "Upgrade to webOS 3.1.0 Community Edition",
+            label: "Upgrade to webOS Community Edition",
             content: STEP3_DOCTOR_TOUCHPAD_CE
           }
         ]
@@ -421,7 +424,7 @@ var STEP4_OPT_TOUCHPAD_VEER = {
 };
 
 /* True only when Step 3's answer was upgrading a TouchPad 10" to webOS
-   3.1.0 Community Edition -- that Doctor already leaves the device
+   3.2.0 Community Edition -- that Doctor already leaves the device
    activated, so none of Step 4's recovery-mode/deviceTool steps apply.
    Purely derived from Step 3's own path (not a separate stored flag),
    so it can never drift out of sync with what was actually chosen: if
@@ -516,7 +519,7 @@ var STEP5_DEVMODE_NODE = {
 };
 
 var STEP5_OPT_CE_INSTALLED = {
-  label: "App Stores are already installed in 3.1.0, but you may want to visit them to check for updates and to see what's new.",
+  label: "App Stores are already installed in 3.2.0, but you may want to visit them to check for updates and to see what's new.",
   content: "<p>Developer Mode is already turned on too, in case you ever want to install homebrew apps directly.</p>" +
     "<p><button type='button' class='continue-btn' onclick='wosaGoto(6)'>Continue to Step 6 &rarr;</button></p>"
 };
@@ -546,10 +549,32 @@ var STEP5_NODE = {
   }
 };
 
+var STEP6_CATALOG_LI = "<li>Check out thousands of historical, restored and new apps in the <a href='http://appcatalog.webosarchive.org/'>App Catalog</a>.</li>";
+
+var STEP6_CONTINUE = "<p><button type='button' class='continue-btn' onclick='wosaGoto(7)'>Continue to Step 7 &rarr;</button></p>";
+
+var STEP6_TOUCHPAD = "<p>Your TouchPad can speak modern TLS natively, starting at webOS 3.0.5.</p>" +
+  "<ul>" +
+  "<li>In Preware, add the modernize feed if needed: <code>http://stacks.webosarchive.org/feeds/modernize/ipkgs/</code> (Compressed/gzip on), then Update Feeds.</li>" +
+  "<li>Search for <strong>TLS 1.3 Updates (TouchPad)</strong> and install it. This covers browser/app/mail/curl/download-manager TLS, current root certs, automatic clock sync, the restored App Catalog, plus the restored on-device Help, USB Settings, and Bluetooth gamepad support.</li>" +
+  "<li>Search Preware for <strong>Atlas</strong> and install it &mdash; a genuinely modern browser engine for pages the stock browser can't render.</li>" +
+  STEP6_CATALOG_LI +
+  "</ul>" + STEP6_CONTINUE;
+
+/* Community Edition (Step 3: TouchPad 10" > Upgrade to webOS Community
+   Edition, see wosaIsCEUpgrade) ships with the modernize feed and the TLS
+   Updates already installed, so don't tell those users to install them. */
+var STEP6_TOUCHPAD_CE = "<p>webOS Community Edition already speaks modern TLS &mdash; the modernize feed and the TLS 1.3 Updates come pre-installed, so there's nothing to set up.</p>" +
+  "<ul>" +
+  "<li>Search Preware for <strong>Atlas</strong> and install it &mdash; a genuinely modern browser engine for pages the stock browser can't render.</li>" +
+  STEP6_CATALOG_LI +
+  "</ul>" + STEP6_CONTINUE;
+
 var STEP6_NODE = {
   q: "Which best describes your device?",
   info: "<div class='callout'>Set your device's clock before doing anything else here: TLS certificate checks are based on the date, so a wrong clock causes connection errors and failures on nearly every secure site.</div>",
-  options: [
+  options: function () {
+    return [
     {
       label: wosaDeviceIconLabel(0),
       content: "<p>webOS 1.x can't run the Modern TLS Updates, so you're mostly limited to plain HTTP &mdash; but there's still plenty to do.</p>" +
@@ -575,13 +600,7 @@ var STEP6_NODE = {
     },
     {
       label: wosaDeviceIconLabel(2),
-      content: "<p>Your TouchPad can speak modern TLS natively, starting at webOS 3.0.5.</p>" +
-        "<ul>" +
-        "<li>In Preware, add the modernize feed if needed: <code>http://stacks.webosarchive.org/feeds/modernize/ipkgs/</code> (Compressed/gzip on), then Update Feeds.</li>" +
-        "<li>Search for <strong>TLS 1.3 Updates (TouchPad)</strong> and install it. This covers browser/app/mail/curl/download-manager TLS, current root certs, automatic clock sync, the restored App Catalog, plus the restored on-device Help, USB Settings, and Bluetooth gamepad support.</li>" +
-        "<li>Search Preware for <strong>Atlas</strong> and install it &mdash; a genuinely modern browser engine for pages the stock browser can't render.</li>" +
-        "</ul>" +
-        "<p><button type='button' class='continue-btn' onclick='wosaGoto(7)'>Continue to Step 7 &rarr;</button></p>"
+      content: wosaIsCEUpgrade() ? STEP6_TOUCHPAD_CE : STEP6_TOUCHPAD
     },
     {
       label: wosaDeviceIconLabel(3),
@@ -590,10 +609,12 @@ var STEP6_NODE = {
         "<li>In Preware, add the modernize feed if needed: <code>http://stacks.webosarchive.org/feeds/modernize/ipkgs/</code> (Compressed/gzip on), then Update Feeds.</li>" +
         "<li>Search for <strong>TLS 1.3 Updates (TouchPad)</strong> and install it &mdash; the same package covers both TouchPad sizes.</li>" +
         "<li>Search Preware for <strong>Atlas</strong> and install it for modern browser rendering.</li>" +
+        STEP6_CATALOG_LI +
         "</ul>" +
         "<p><button type='button' class='continue-btn' onclick='wosaGoto(7)'>Continue to Step 7 &rarr;</button></p>"
     }
-  ]
+    ];
+  }
 };
 
 var STEP7_NODE = {
