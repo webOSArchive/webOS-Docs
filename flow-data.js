@@ -264,15 +264,12 @@ var STEP3_DOCTOR_TOUCHPAD_RESET = STEP3_DOCTOR_INTRO +
   "<li><code>webosdoctorp305hstnhwifi.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.0.5)</li>" +
   "</ul>" + STEP3_DOCTOR_CONTINUE;
 
-var STEP3_DOCTOR_TOUCHPAD_CE = "<p><img src='https://appcatalog.webosarchive.org/AppImages/1005833/icon-256.png' width='64' style='float:left; margin-right:8px;'>If you previously Doctored your TouchPad to webOS Community Edition 3.1.0, and just want to update to the 3.2.0, you only need to install the <b>OTA Ready</b> app from the App Catalog and follow the prompts on your device.</p>" +
-  "<p>If you're upgrading from an older OS, or need to reset, continue reading below...</p>" + STEP3_DOCTOR_CALLOUT +
+function wosaBuildCEDoctor(preamble, files) {
+  return preamble + STEP3_DOCTOR_CALLOUT +
   "<p>The Community Edition Doctor activates the device for you, so once it finishes, <a href='#' onclick='wosaGoto(4); return false;'>Step 4</a> is just a quick on-device confirmation.</p>" +
   "<p>Running a Doctor wipes the device, so back up anything on it you want to keep first. This one replaces the original OS with webOS 3.2.0 Community Edition.</p>" +
   "<p>Download the matching file for your TouchPad from the <a href='https://archive.org/details/webOSDoctors'>archived webOS Doctors</a>:</p>" +
-  "<ul>" +
-  "<li><code>webosdoctorp320hstnh-ce-600121.jar</code> &mdash; TouchPad 10&quot; AT&amp;T (3.2.0 Community Edition)</li>" +
-  "<li><code>webosdoctorp320hstnhatt-ce-600122.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.2.0 Community Edition)</li>" +
-  "</ul>" +
+  "<ul>" + files + "</ul>" +
   "<p><strong>Get the TouchPad into recovery mode.</strong> Connect a good quality micro-USB cable directly between the TouchPad and your computer &mdash; not through a hub. (OEM cables are recognizable by a small silver indented circle near the connector.)</p>" +
   "<ol>" +
   "<li>Hold Home + Power to force a reboot, and keep holding.</li>" +
@@ -287,6 +284,17 @@ var STEP3_DOCTOR_TOUCHPAD_CE = "<p><img src='https://appcatalog.webosarchive.org
   "</ol>" +
   "<p class='note'>If the Doctor doesn't detect your device, the novacom driver probably isn't working &mdash; double check <a href='#' onclick='wosaGoto(1); return false;'>Step 1</a>.</p>" +
   "<p><button type='button' class='continue-btn' onclick='wosaGoto(4)'>Continue to Step 4 &rarr;</button></p>";
+}
+
+var STEP3_DOCTOR_TOUCHPAD_CE = wosaBuildCEDoctor(
+  "<p><img src='https://appcatalog.webosarchive.org/AppImages/1005833/icon-256.png' width='64' style='float:left; margin-right:8px;'>If you previously Doctored your TouchPad to webOS Community Edition 3.1.0, and just want to update to the 3.2.0, you only need to install the <b>OTA Ready</b> app from the App Catalog and follow the prompts on your device.</p>" +
+  "<p>If you're upgrading from an older OS, or need to reset, continue reading below...</p>",
+  "<li><code>webosdoctorp320hstnh-ce-600121.jar</code> &mdash; TouchPad 10&quot; AT&amp;T (3.2.0 Community Edition)</li>" +
+  "<li><code>webosdoctorp320hstnhatt-ce-600122.jar</code> &mdash; TouchPad 10&quot; 16/32/64GB WiFi (3.2.0 Community Edition)</li>");
+
+var STEP3_DOCTOR_TOUCHPAD_GO_CE = wosaBuildCEDoctor(
+  "<p>The TouchPad Go has a Community Edition Doctor to webOS 3.2.0, but no OTA update, so a Doctor is the only way to upgrade.</p>",
+  "<li><code>webosdoctor-opal-ce-3.2.0.jar</code> &mdash; TouchPad Go 7&quot; (3.2.0 Community Edition)</li>");
 
 var STEP3_DOCTOR_TOUCHPAD_GO = STEP3_DOCTOR_INTRO +
   "<ul>" +
@@ -362,6 +370,10 @@ var STEP3_NODE = {
           {
             label: "Reset it to stock",
             content: STEP3_DOCTOR_TOUCHPAD_GO
+          },
+          {
+            label: "Upgrade to webOS Community Edition",
+            content: STEP3_DOCTOR_TOUCHPAD_GO_CE
           }
         ]
       }
@@ -431,7 +443,15 @@ var STEP4_OPT_TOUCHPAD_VEER = {
    the filter or the Step 3 answer changes, this just re-evaluates true
    on the next render. */
 function wosaIsCEUpgrade() {
-  if (typeof wosaState === "undefined" || wosaState.deviceFilter !== 2) { return false; }
+  if (typeof wosaState === "undefined") { return false; }
+  var f = wosaState.deviceFilter;
+  if (f === 3) {
+    /* TouchPad Go: its CE option is index 2 as well, after "Just
+       activate" (0) and "Reset to stock" (1). */
+    var goPath = wosaState.path && wosaState.path[3];
+    return !!(goPath && goPath[1] === 2);
+  }
+  if (f !== 2) { return false; }
   var step3Path = wosaState.path && wosaState.path[3];
   return !!(step3Path && step3Path[1] === 2);
 }
@@ -604,7 +624,7 @@ var STEP6_NODE = {
     },
     {
       label: wosaDeviceIconLabel(3),
-      content: "<p>Your TouchPad Go can speak modern TLS natively, starting at webOS 3.0.5.</p>" +
+      content: wosaIsCEUpgrade() ? STEP6_TOUCHPAD_CE : "<p>Your TouchPad Go can speak modern TLS natively, starting at webOS 3.0.5.</p>" +
         "<ul>" +
         "<li>In Preware, add the modernize feed if needed: <code>http://stacks.webosarchive.org/feeds/modernize/ipkgs/</code> (Compressed/gzip on), then Update Feeds.</li>" +
         "<li>Search for <strong>TLS 1.3 Updates (TouchPad)</strong> and install it &mdash; the same package covers both TouchPad sizes.</li>" +

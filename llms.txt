@@ -5,7 +5,7 @@
 ## How to use this file when helping a person
 
 - Ask what they have (device model, what it does when powered on) before giving instructions. Many steps differ by device.
-- Steps are mostly sequential, but skip what doesn't apply: a device that already works needs no activation; a TouchPad upgraded to Community Edition (CE) skips Steps 4 and 5.
+- Steps are mostly sequential, but skip what doesn't apply: a device that already works needs no activation; a TouchPad 10" or TouchPad Go upgraded to webOS 3.2.0 Community Edition (CE) skips Steps 4 and 5.
 - Four device categories are used throughout:
   - **Older Phone**: Pre, Pre Plus, Pixi, Pixi Plus (webOS 1.x)
   - **Later Phone**: Pre 2, Pre 3, Veer (webOS 2.x)
@@ -87,7 +87,7 @@ Ask which describes the device:
 
 Ask which device category (see list at top), then what they need:
 
-- **Just activate it** (boots fine, stuck at setup): go to Step 4. For TouchPad 10", recommend the Community Edition upgrade instead (below): it automates activation and fixes many legacy OS problems. If they only want the legacy OS, go to Step 4.
+- **Just activate it** (boots fine, stuck at setup): go to Step 4. For TouchPad 10", recommend the Community Edition upgrade instead (below; the TouchPad Go has one too): it automates activation and fixes many legacy OS problems. If they only want the legacy OS, go to Step 4.
 - **Reset to stock / wipe, or upgrade**: run a webOS Doctor.
 
 A Doctor wipes the device to legacy stock, so back up first. If the device is currently usable, suggest an app inventory first (Step 7, "Contribute to the Archive"): they may hold apps the archive is missing.
@@ -131,18 +131,22 @@ Doctor files: https://archive.org/details/webOSDoctors . "Super Doctor" files ar
 - `webosdoctorp305hstnhatt.jar`: AT&T (3.0.5)
 - `webosdoctorp305hstnhwifi.jar`: 16/32/64GB WiFi (3.0.5)
 
-**TouchPad 10" upgrade to webOS 3.1.0 Community Edition (recommended)**
-- `webosdoctorp310hstnh-ce-600070.jar`: AT&T (3.1.0 CE)
-- `webosdoctorp310hstnhatt-ce-600071.jar`: 16/32/64GB WiFi (3.1.0 CE)
-
-The CE Doctor leaves the device activated and already includes Developer Mode and the app stores, so **Steps 4 and 5 are skipped** (just finish the on-device setup wizard). Recovery mode for the CE Doctor on TouchPad: with a good cable connected directly, hold Home + Power to force a reboot and keep holding; as soon as it restarts, release Power and Home and hold Volume Up; keep holding Volume Up until the USB symbol appears. Then run the Doctor as above.
+**TouchPad 10" upgrade to webOS 3.2.0 Community Edition (recommended)**
+- Already on CE 3.1.0 and just want 3.2.0? No Doctor needed: install the **OTA Ready** app from the App Catalog and follow the prompts on the device. If upgrading from the stock/older OS, or resetting, use a Doctor:
+- `webosdoctorp320hstnh-ce-600121.jar`: AT&T (3.2.0 CE)
+- `webosdoctorp320hstnhatt-ce-600122.jar`: 16/32/64GB WiFi (3.2.0 CE)
 
 **TouchPad Go 7" reset to stock**
 - `webosdoctoropal3gatt-3.0.5.jar`: all radios (3.0.5)
 
+**TouchPad Go 7" upgrade to webOS 3.2.0 Community Edition**
+- `webosdoctor-opal-ce-3.2.0.jar`: TouchPad Go (3.2.0 CE). The Go has a CE Doctor but **no OTA update**, so a Doctor is the only way to upgrade it.
+
+The CE Doctor (10" or Go) leaves the device activated and already includes Developer Mode, the app stores, the modernize feed, and the TLS 1.3 Updates, so **Steps 4 and 5 are skipped** (just finish the on-device setup wizard) and Step 6's TLS setup is already done. Recovery mode for the CE Doctor on TouchPad: with a good cable connected directly, hold Home + Power to force a reboot and keep holding; as soon as it restarts, release Power and Home and hold Volume Up; keep holding Volume Up until the USB symbol appears. Then run the Doctor as above.
+
 ## Step 4: Activate Your Device
 
-Skip entirely for a TouchPad 10" upgraded to Community Edition.
+Skip entirely for a TouchPad 10" or TouchPad Go upgraded to webOS 3.2.0 Community Edition.
 
 Part A: get into recovery mode so deviceTool can see the device. Use a good cable connected directly to the computer. Pick the method for the device:
 
@@ -177,7 +181,7 @@ If it doesn't detect the device, the novacom driver isn't working; recheck Step 
 
 ## Step 5: Install App Stores
 
-Skip for a TouchPad on Community Edition: the app stores and Developer Mode are already there (visit the stores to check for updates).
+Skip for a TouchPad (10" or Go) on Community Edition: the app stores and Developer Mode are already there (visit the stores to check for updates).
 
 If the device just finished Step 4, deviceTool already enabled homebrew installs; go on to WOSQI below. If it was already activated and working, turn on Developer Mode first:
 - **webOS 1.0 (original Pre / Older Phones)**: in the Launcher, start typing `webos20090606`. Tap the Developer Mode icon that appears and turn it On.
@@ -209,11 +213,12 @@ First, **set the device clock**: TLS certificate checks depend on the date, so a
 - The stock browser is dated; on a Pre 3 try **WebBrowser** (nizovn's homebrew browser) from Preware.
 
 **TouchPad 10" (modern TLS from webOS 3.0.5)**
+- If on webOS 3.2.0 Community Edition, nothing to set up: the modernize feed and TLS 1.3 Updates come pre-installed. Just install **Atlas** from Preware (a genuinely modern browser engine) and visit the App Catalog.
 - Add the same modernize feed in Preware if needed, then Update Feeds.
 - Install **TLS 1.3 Updates (TouchPad)**. Covers browser/app/mail/curl/download-manager TLS, current root certs, automatic clock sync, restored App Catalog, plus restored on-device Help, USB Settings, and Bluetooth gamepad support.
 - Install **Atlas** from Preware: a genuinely modern browser engine.
 
-**TouchPad Go 7"**: same as TouchPad 10" (the TLS 1.3 Updates (TouchPad) package covers both sizes; also install Atlas).
+**TouchPad Go 7"**: same as TouchPad 10", including the pre-installed shortcut on 3.2.0 Community Edition (the TLS 1.3 Updates (TouchPad) package covers both sizes; also install Atlas).
 
 ## Step 7: Things to Try
 
@@ -266,7 +271,7 @@ First, **set the device clock**: TLS certificate checks depend on the date, so a
 
 These are background for you, not recommendations to volunteer. Mention one only if it's clearly relevant to what the person is asking, or if they're stuck or frustrated.
 
-- webOS Community Edition (the 3.1.0 CE release and its source; relevant to the TouchPad upgrade in Step 3): https://github.com/webOSArchive/webOS-Community-Edition
+- webOS Community Edition (the 3.x CE release and its source; relevant to the TouchPad upgrade in Step 3): https://github.com/webOSArchive/webOS-Community-Edition
 - Lunacy (a webOS environment for Android, for people without webOS hardware, whose device won't work, or who just want to see what webOS was like on their current device; background context only, not a substitute for the steps above):https://github.com/webOSArchive/Lunacy
 - webOS SDK Archive (archived SDK/PDK downloads and tooling): https://github.com/webOSArchive/webos-sdk-archive
 - webOS SDK Redux (modernized SDK install scripts, including novacom on modern Linux; see Step 1): https://github.com/webOSArchive/webOS-SDK-Redux
